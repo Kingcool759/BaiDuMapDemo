@@ -17,8 +17,12 @@ import com.baidu.mapapi.model.LatLng
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var mMapView: MapView
-    lateinit var mBaiduMap: BaiduMap
+    val mMapView: MapView by lazy {
+        findViewById<MapView>(R.id.mMapView)
+    }
+    val mBaiduMap: BaiduMap by lazy {
+        mMapView.map
+    }
     lateinit var mLocationClient: LocationClient
     lateinit var option: LocationClientOption
     lateinit var mLocationConfiguration: MyLocationConfiguration
@@ -36,9 +40,6 @@ class MainActivity : AppCompatActivity() {
         //包括BD09LL和GCJ02两种坐标，默认是BD09LL坐标。
         SDKInitializer.setCoordType(CoordType.BD09LL);
         setContentView(R.layout.activity_main)
-        //获取地图控件引用
-        mMapView = findViewById<MapView>(R.id.mMapView)
-        mBaiduMap = mMapView.map;
 //        mBaiduMap.mapType = BaiduMap.MAP_TYPE_SATELLITE; //显示卫星图层
         mBaiduMap.isMyLocationEnabled = true;  //开启地图的定位图层
 
@@ -72,7 +73,7 @@ class MainActivity : AppCompatActivity() {
         //设置locationClientOption
         mLocationClient.locOption = option
         //注册LocationListener监听器
-        myLocationListener = MyLocationListener(mMapView, mBaiduMap)
+        myLocationListener = MyLocationListener()
         mLocationClient.registerLocationListener(myLocationListener)
         //开启地图定位图层
         mLocationClient.start()
@@ -150,11 +151,11 @@ class MainActivity : AppCompatActivity() {
         mMapView.onDestroy()
     }
 
-    inner class MyLocationListener(var v: MapView, var map: BaiduMap) :
+    inner class MyLocationListener() :
         BDAbstractLocationListener() {
         override fun onReceiveLocation(location: BDLocation) {
             //mapView 销毁后不在处理新接收的位置
-            if (location == null || v == null) {
+            if (location == null || mMapView == null) {
                 return
             }
             Log.d("zjwlocTypeDescription", location.locTypeDescription)
@@ -166,7 +167,7 @@ class MainActivity : AppCompatActivity() {
                 .longitude(location.longitude).build()
             mLatitude = location.latitude
             mLongitude = location.longitude
-            map.setMyLocationData(mLocationData)
+            mBaiduMap.setMyLocationData(mLocationData)
         }
     }
 }
